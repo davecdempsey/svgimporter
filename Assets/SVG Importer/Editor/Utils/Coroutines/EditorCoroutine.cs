@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Networking;
 using System.Collections;
 using UnityEditor;
 using System.Collections.Generic;
@@ -74,7 +75,7 @@ namespace SVGImporter
 
         class CoroutineWWW : ICoroutineYield
         {
-            public WWW Www;
+            public UnityEngine.Networking.UnityWebRequest Www;
 
             public override bool IsDone(float deltaTime)
             {
@@ -328,9 +329,9 @@ namespace SVGImporter
             {
                 float seconds = float.Parse(GetInstanceField(typeof(WaitForSeconds), current, "m_Seconds").ToString());
                 coroutine.CurrentYield = new CoroutineWaitForSeconds() { TimeLeft = (float)seconds };
-            } else if (current is WWW)
+            } else if (current is UnityWebRequest)
             {
-                coroutine.CurrentYield = new CoroutineWWW() { Www = (WWW) current };
+                coroutine.CurrentYield = new CoroutineWWW() { Www = (UnityWebRequest) current };
             } else if (current is WaitForFixedUpdate)
             {
                 coroutine.CurrentYield = new CoroutineDefault();

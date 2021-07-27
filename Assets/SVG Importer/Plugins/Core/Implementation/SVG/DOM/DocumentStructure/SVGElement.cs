@@ -151,7 +151,7 @@ namespace SVGImporter.Document
                 } else {
                     _cachedViewBoxTransform = SVGTransformable.GetViewBoxTransform(_attrList, ref viewport, true);
                 }
-
+                // SS
                 //Debug.Log(viewport);
                 //Debug.Log(_xmlImp.node.name);
                 paintable.SetViewport(viewport);

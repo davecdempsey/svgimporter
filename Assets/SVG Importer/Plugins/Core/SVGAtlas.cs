@@ -1,8 +1,7 @@
-
-
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace SVGImporter
 {
@@ -228,6 +227,50 @@ namespace SVGImporter
             _gradientShapeTexture = null;
         }
 
+        public static bool IsUsingSRP()
+        {
+            return UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset != null;
+        }
+
+        public static bool IsUsingSRPBatcher()
+        {
+            if (IsUsingSRP())
+            {
+                return UnityEngine.Rendering.GraphicsSettings.useScriptableRenderPipelineBatching;
+            }
+            return false;
+        }
+
+        public static bool AlwaysUseSRP()
+        {
+		    return true;
+        }
+
+        public bool CanUseSRP()
+        {
+            return true;
+        }
+
+        public bool CanUseSRPBatcher()
+        {
+            return CanUseSRP();
+        }
+
+
+        private RenderPipelineAsset _lastRenderPipelineAsset;
+
+        //SS Currently used from MussilaPlanets
+        public void SaveLastSRP()
+        {
+            _lastRenderPipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset;
+        }
+
+        //SS Currently used from MussilaPlanets
+        public void ResetLastSRP()
+        {
+            UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = _lastRenderPipelineAsset;
+        }
+
         //todo Atlas data gets deleted!!!
         protected SVGAtlasData _atlasData;
         public SVGAtlasData atlasData
@@ -373,6 +416,26 @@ namespace SVGImporter
     	public int gradientHeight = 4;
         public int atlasTextureWidth = defaultAtlasTextureWidth;
         public int atlasTextureHeight = defaultAtlasTextureHeight;
+
+        public void UnregisterSVGRendering()
+        {
+            Camera.onPreRender -= OnAtlasPreRender;
+            RenderPipelineManager.beginCameraRendering -= OnAtlasPreRenderSRP;
+        }
+
+        public void RegisterSVGRendering()
+        {
+            //SS Make sure to never double register rendering
+            UnregisterSVGRendering();
+
+            if (IsUsingSRP())
+            {
+                RenderPipelineManager.beginCameraRendering += OnAtlasPreRenderSRP;
+            } else
+            {
+                Camera.onPreRender += OnAtlasPreRender;
+            }
+        }
     	
         protected void Awake()
         {
@@ -380,29 +443,42 @@ namespace SVGImporter
                 DontDestroyOnLoad(gameObject);
             _atlasHasChanged = false;
             _beingDestroyed = false;
-            AddFakeCamera();
+             //SS Not fully sure why we add this fake camere. Can work without
+             //AddFakeCamera();
+             //SS Move to Register function
 
-            Camera.onPreRender += OnAtlasPreRender;
+             RegisterSVGRendering();
+
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.update += EditorUpdate;
 #endif
         }
 
+        public void OnEnable()
+        {
+            RegisterSVGRendering();
+        }
+
 #if UNITY_EDITOR
         private void EditorUpdate()
         {
+            //SS Should consider if we need to run this function in the Editor mode when SRP is enabled.
+            // Callbacks to SRP renderpipeline might be handled in other way than Camera.OnPreRender.
+            //if (!Application.isPlaying && !IsUsingSRP()) OnAtlasPreRender(Camera.current);
             if (!Application.isPlaying) OnAtlasPreRender(Camera.current);
         }
 #endif
+
+        //SS Does this cause double calculation. Consider renaming
         public void OnPreRender()
-        {            
+        {
             OnAtlasPreRender();
         }
 
         protected void OnDestroy()
         {
             _beingDestroyed = true;
-            Camera.onPreRender -= OnAtlasPreRender;
+            UnregisterSVGRendering();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.update -= EditorUpdate;
 #endif
@@ -411,6 +487,9 @@ namespace SVGImporter
         protected void AddFakeCamera()
         {
                 Camera camera = gameObject.AddComponent<Camera>();
+#if UNITY_EDITOR && !UNITY_2019_3_OR_NEWER
+                camera.gameObject.AddComponent<GUILayer>();
+#endif
                 camera.hideFlags = HideFlags.DontSave;
                 camera.clearFlags = CameraClearFlags.Nothing;
                 camera.orthographic = true;
@@ -418,7 +497,30 @@ namespace SVGImporter
                 camera.cullingMask = 0;
                 camera.useOcclusionCulling = false;
         }
-        
+
+        public void OnAtlasPreRenderSRP(ScriptableRenderContext context, Camera camera = null)
+        {
+            //SS check which camera we are using. Might not always want to use this function.
+            if (camera != null) {
+                if (camera.cameraType != CameraType.Game) {
+                    //Debug.Log("OnAtlasSRP " + camera.name + " " + camera.cameraType.ToString());
+                    //return;
+                }
+            }
+
+            //Debug.Log("SVGAtlas.OnAtlasPreRenderingSRP");
+            SVGImporterSettings.UpdateAntialiasing();
+
+            if (_atlasHasChanged)
+            {
+                RebuildAtlas();
+                _atlasHasChanged = false;
+#if UNITY_EDITOR
+                UpdateMaterialList();
+#endif
+            }
+        }
+
         public void OnAtlasPreRender(Camera camera = null)
         {
             SVGImporterSettings.UpdateAntialiasing();
@@ -454,7 +556,7 @@ namespace SVGImporter
                     _Instance.hideFlags = HideFlags.DontSave;
                     _Instance.Init();
                 }
-                
+                //_Instance.gameObject.hideFlags = HideFlags.DontSave;
                 return _Instance;
             }
         }

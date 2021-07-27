@@ -226,13 +226,13 @@ namespace SVGImporter
                     "graphics Shader Level: "+SystemInfo.graphicsShaderLevel+"\n" +
                     "max Texture Size: "+SystemInfo.maxTextureSize+"\n" +
                     "npot Support: "+SystemInfo.npotSupport+"\n" +
-                    "supports Stencil: "+SystemInfo.supportsStencil+"\n" +
+                    //"supports Stencil: "+SystemInfo.supportsStencil+"\n" + // always true
                     "supported Render Target Count: "+SystemInfo.supportedRenderTargetCount+"\n" +
                     "supports 3D Textures: "+SystemInfo.supports3DTextures+"\n" +
                     "supports Compute Shaders: "+SystemInfo.supportsComputeShaders+"\n" +
-                    "supports Image Effects: "+SystemInfo.supportsImageEffects+"\n" +
+                    //"supports Image Effects: "+SystemInfo.supportsImageEffects+"\n" + // always true
                     "supports Instancing: "+SystemInfo.supportsInstancing+"\n" +
-                    "supports Render To Cubemap: "+SystemInfo.supportsRenderToCubemap+"\n" +
+                    //"supports Render To Cubemap: "+SystemInfo.supportsRenderToCubemap+"\n" + // always true
                     "supports Shadows: "+SystemInfo.supportsShadows+"\n" +
                     "supports Sparse Textures: "+SystemInfo.supportsSparseTextures+"\n";
 

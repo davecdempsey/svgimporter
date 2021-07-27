@@ -4,6 +4,7 @@
 
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Networking;
 
 using System.Net;
 using System.Collections;
@@ -14,10 +15,11 @@ namespace SVGImporter
 {
     using Utils;
 
+    /*
 	internal class DelayedCall
     {
         public System.Action callback;
-        public System.Action<UnityEngine.WWW> wwwCallback;
+        public System.Action<UnityWebRequest> wwwCallback;
         public DelayedCall(System.Action callback = null)
         {
             this.callback = callback;
@@ -32,7 +34,7 @@ namespace SVGImporter
 
 		public IEnumerator WWW(string request)
 		{
-            UnityEngine.WWW www = new UnityEngine.WWW(request);
+            UnityWebRequest www = new UnityWebRequest(request);
             yield return www;
             if(this.callback != null)
             {
@@ -44,6 +46,7 @@ namespace SVGImporter
             }
 		}
     }
+    */
 
     [InitializeOnLoad]
     public class SVGImporterLaunchEditor {
@@ -63,7 +66,7 @@ namespace SVGImporter
 			//Analytics.TrackEvent("Open Report Bug", "app/ReportBug");
 		}
 
-        static DelayedCall initCall;
+        //static DelayedCall initCall;
 
         // Begining
 		static bool launched = false;
@@ -76,7 +79,7 @@ namespace SVGImporter
 				launched = true;
 			}
 
-            initCall = new DelayedCall(DelayedInit);
+            //initCall = new DelayedCall(DelayedInit);
 
             if (EditorPrefs.HasKey(SVG_IMPORTER_WINDOW_PREF_KEY))
             {
@@ -91,7 +94,7 @@ namespace SVGImporter
             UpdateDelegates();
 
 			//Analytics.TrackEvent("Start App, Version: "+SVGImporterSettings.version, "app/start");
-            EditorCoroutine.StartCoroutine(initCall.Delay(0.5f), initCall);
+            //EditorCoroutine.StartCoroutine(initCall.Delay(0.5f), initCall);
         }
 
         static void DelayedInit()
@@ -133,10 +136,14 @@ namespace SVGImporter
 
         static void RegisterDelegates()
         {
-            if(!SVGDeleagate.IsRegistered(EditorApplication.playmodeStateChanged, PlaymodeStateChanged))
-                EditorApplication.playmodeStateChanged += PlaymodeStateChanged;
-            if(!SVGDeleagate.IsRegistered<SceneView>(SceneView.onSceneGUIDelegate, OnSceneGUI))
-                SceneView.onSceneGUIDelegate += OnSceneGUI;
+            //if(!SVGDeleagate.IsRegistered(EditorApplication.playmodeStateChanged, PlaymodeStateChanged))
+            //    EditorApplication.playmodeStateChanged += PlaymodeStateChanged;
+            //if(!SVGDeleagate.IsRegistered<SceneView>(SceneView.onSceneGUIDelegate, OnSceneGUI))
+            //    SceneView.onSceneGUIDelegate += OnSceneGUI;
+            EditorApplication.playModeStateChanged -= OnPlaymodeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlaymodeStateChanged;
+            SceneView.duringSceneGui -= OnSceneGUI;
+            SceneView.duringSceneGui += OnSceneGUI;
             if(!SVGDeleagate.IsRegistered<GameObject>(PrefabUtility.prefabInstanceUpdated, OnPrefabInstanceUpdated))
                 PrefabUtility.prefabInstanceUpdated += OnPrefabInstanceUpdated;
             if(!SVGDeleagate.IsRegistered<int, Rect>(EditorApplication.hierarchyWindowItemOnGUI, HierarchyWindowItemOnGUI))
@@ -160,11 +167,13 @@ namespace SVGImporter
 
         static void UnregisterDelegates()
         {
-            if(SVGDeleagate.IsRegistered(EditorApplication.playmodeStateChanged, PlaymodeStateChanged))
-                EditorApplication.playmodeStateChanged -= PlaymodeStateChanged;
-            if(SVGDeleagate.IsRegistered<SceneView>(SceneView.onSceneGUIDelegate, OnSceneGUI))
-                SceneView.onSceneGUIDelegate -= OnSceneGUI;
-            if(SVGDeleagate.IsRegistered<GameObject>(PrefabUtility.prefabInstanceUpdated, OnPrefabInstanceUpdated))
+            //if(SVGDeleagate.IsRegistered(EditorApplication.playmodeStateChanged, PlaymodeStateChanged))
+            //    EditorApplication.playmodeStateChanged -= PlaymodeStateChanged;
+            //if(SVGDeleagate.IsRegistered<SceneView>(SceneView.onSceneGUIDelegate, OnSceneGUI))
+            //    SceneView.onSceneGUIDelegate -= OnSceneGUI;
+            EditorApplication.playModeStateChanged -= OnPlaymodeStateChanged;
+            SceneView.duringSceneGui -= OnSceneGUI;
+            if (SVGDeleagate.IsRegistered<GameObject>(PrefabUtility.prefabInstanceUpdated, OnPrefabInstanceUpdated))
                 PrefabUtility.prefabInstanceUpdated -= OnPrefabInstanceUpdated;
             if(SVGDeleagate.IsRegistered<int, Rect>(EditorApplication.hierarchyWindowItemOnGUI, HierarchyWindowItemOnGUI))
                 EditorApplication.hierarchyWindowItemOnGUI -= HierarchyWindowItemOnGUI;
@@ -214,6 +223,12 @@ namespace SVGImporter
             }
         }
         */
+
+
+        static void OnPlaymodeStateChanged(PlayModeStateChange state)
+        {
+            PlaymodeStateChanged();
+        }
 
         static void PlaymodeStateChanged()
         {
@@ -438,7 +453,8 @@ namespace SVGImporter
             }
         }
     }
-	
+
+    /*
 	internal class Analytics
 	{
         internal const string LAST_IP_ADDRESS_KEY = "SVG_Importer_Last_IPAddress";
@@ -473,7 +489,7 @@ namespace SVGImporter
             if(ipAdress == null)
             {
                 wwwIPCall = new DelayedCall();
-                wwwIPCall.wwwCallback = delegate(WWW obj) 
+                wwwIPCall.wwwCallback = delegate(UnityWebRequest obj) 
                 {
                     if(!string.IsNullOrEmpty(obj.text))
                     {
@@ -492,5 +508,6 @@ namespace SVGImporter
             return ipAdress;
         }
 	}
+    */
 }
 

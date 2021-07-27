@@ -349,6 +349,9 @@ namespace SVGImporter
             {
                 _vectorGraphics.RemoveReference(this);
             }
+            //SS Destroy mesh
+            SVGAsset.DestroyMesh(_mesh);
+            
             base.OnDestroy();
         }
 
@@ -408,7 +411,13 @@ namespace SVGImporter
                 bool colorChanged = force || _lastColor != _color;
                 bool materialChanged = force || _lastOpaqueMaterial != _opaqueMaterial || _lastTransparentMaterial != _transparentMaterial;
 #if UNITY_EDITOR
-                for(int i = 0; i < meshRenderer.sharedMaterials.Length; i++)
+                int len = 0;
+                if (meshRenderer != null && meshRenderer.sharedMaterials != null)
+                {
+                    len = meshRenderer.sharedMaterials.Length;
+                }
+
+                for(int i = 0; i < len; i++)
                 {
                     if(meshRenderer.sharedMaterials[i] != null) continue;
                     materialChanged = true;

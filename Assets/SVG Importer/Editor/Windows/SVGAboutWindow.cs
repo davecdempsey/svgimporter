@@ -76,7 +76,7 @@ namespace SVGImporter
 		[MenuItem("Window/SVG Importer/Help/Documentation")]
 		private static void ShowDocumentation()
 		{
-			Analytics.TrackEvent("Show Documentation", "app/help/documentation");
+			//Analytics.TrackEvent("Show Documentation", "app/help/documentation");
 			string[] guids = AssetDatabase.FindAssets("SVG Importer - documentation");
 			if(guids != null && guids.Length > 0)
 			{
@@ -87,28 +87,28 @@ namespace SVGImporter
 		[MenuItem("Window/SVG Importer/Help/Website")]
 		private static void ShowWebsite()
 		{
-			Analytics.TrackEvent("Click URL Website", "app/help/website");
+			//Analytics.TrackEvent("Click URL Website", "app/help/website");
 			Application.OpenURL("http://svgimporter.com/");
 		}
 
 		[MenuItem("Window/SVG Importer/Help/Youtube")]
 		private static void ShowYoutube()
 		{
-			Analytics.TrackEvent("Click URL Youtube", "app/help/youtube");
+			//Analytics.TrackEvent("Click URL Youtube", "app/help/youtube");
 			Application.OpenURL("https://www.youtube.com/channel/UCfS37PIF9fhUC-saiBHZE-g");
 		}
 
 		[MenuItem("Window/SVG Importer/Help/Facebook")]
 		private static void ShowFacebook()
 		{
-			Analytics.TrackEvent("Click URL Facebook", "app/help/facebook");
+			//Analytics.TrackEvent("Click URL Facebook", "app/help/facebook");
 			Application.OpenURL("https://www.facebook.com/svgimporter");
 		}
 
 		[MenuItem("Window/SVG Importer/Help/Twitter")]
 		private static void ShowTwitter()
 		{
-			Analytics.TrackEvent("Click URL Twitter", "app/help/twitter");
+			//Analytics.TrackEvent("Click URL Twitter", "app/help/twitter");
 			Application.OpenURL("https://twitter.com/svgimporter");
 		}
         
@@ -145,7 +145,7 @@ namespace SVGImporter
 		static void OnLastRectClick(Action action)
 		{
 			Rect lastRect = GUILayoutUtility.GetLastRect();
-			if(Event.current.type == EventType.mouseDown && lastRect.Contains(Event.current.mousePosition))
+			if(Event.current.type == EventType.MouseDown && lastRect.Contains(Event.current.mousePosition))
 			{
 				if(action == null)
 					return;
