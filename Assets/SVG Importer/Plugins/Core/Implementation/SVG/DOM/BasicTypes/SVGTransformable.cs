@@ -183,6 +183,7 @@ namespace SVGImporter.Rendering
             
             string preserveAspectRatio = attributeList.GetValue("preserveAspectRatio");
             string viewBox = attributeList.GetValue("viewBox");
+            //SS Debug.Log("ViewBox: " + viewBox);
             if (!string.IsNullOrEmpty(viewBox))
             {
                 string[] viewBoxValues = SVGStringExtractor.ExtractTransformValue(viewBox);
@@ -194,7 +195,7 @@ namespace SVGImporter.Rendering
                         new SVGLength(viewBoxValues[2]).value,
                         new SVGLength(viewBoxValues[3]).value
                         );
-                    
+                    //SS Debug.Log("ContentRect: " + contentRect.ToString());
                     SVGViewport.Align align = SVGViewport.Align.xMidYMid;
                     SVGViewport.MeetOrSlice meetOrSlice = SVGViewport.MeetOrSlice.Meet;
                     
@@ -206,16 +207,22 @@ namespace SVGImporter.Rendering
                     }
                     
                     Rect oldViewport = viewport;
+                    //SS Rect oldViewport = new Rect(viewport.x, viewport.y, viewport.width, viewport.height);
+
                     viewport = SVGViewport.GetViewport(viewport, contentRect, align, meetOrSlice);
-                    
+                    //SS Debug.Log("Old viewport: " + oldViewport.ToString());
+                    //SS Debug.Log("New viewport: " + viewport.ToString());
                     float sizeX = 0f, sizeY = 0f;
                     if(oldViewport.size.x != 0f)
                         sizeX = viewport.size.x / oldViewport.size.x;
                     if(oldViewport.size.y != 0f)
                         sizeY = viewport.size.y / oldViewport.size.y;
-                    
+                    //SS Debug.Log("scale " + sizeX + " = " + viewport.size.x + " / " + oldViewport.size.x);
+
+                    //SS Debug.Log("scale: " + sizeX + " " + sizeY);
                     matrix.Scale(sizeX, sizeY);
                     matrix = matrix.Translate(viewport.x - oldViewport.x, viewport.y - oldViewport.y);
+                    //SS Debug.Log("SVGMatrix new: " + matrix.ToString());
                 }
             } else {
                 if(negotiate) 

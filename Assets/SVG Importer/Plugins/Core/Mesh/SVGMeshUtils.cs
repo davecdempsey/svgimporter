@@ -1086,6 +1086,11 @@ namespace SVGImporter.Utils
 
             destination.name = source.name;
 
+            //SS added _fill postfix .. adds fill prefix to Instance so skip for now
+            //destination.name = source.name + "_fill";
+
+            //SS here we should remove all useless clone operations since we already return copy of all values
+
             destination.vertices = (Vector3[])source.vertices.Clone();
             destination.triangles = (int[])source.triangles.Clone();
             
@@ -1130,10 +1135,18 @@ namespace SVGImporter.Utils
             if(mesh == null)
                 return null;
 
+            //SS Consider using this method, since this should be the best optimised way
+            return Mesh.Instantiate(mesh);
+/*
+            //SS
+
             Mesh output = new Mesh();
-            output.name = mesh.name;
+            //output.name = mesh.name;
             Fill(mesh, output);
+            //SS adding clone prefix after Fill
+            //output.name = mesh.name + "_clone";
             return output;
+*/
         }
 
         public static Material CloneMaterial(Material original)

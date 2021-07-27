@@ -47,14 +47,76 @@ namespace SVGImporter.Rendering
         public const string DEFAULT_GRADIENT_HASH = "GC999FFFFFFC000FFFFFFA999999A000999";
     	public CCGradientColorKey[] colorKeys;
     	public CCGradientAlphaKey[] alphaKeys;
-    	
-    	public string hash {
+
+        [System.NonSerialized]
+        public bool invalidateHash = true;
+
+        public string _hash = null;
+
+        public void SetHash(string hash)
+        {
+            _hash = hash;
+            invalidateHash = false;
+        }
+
+        //System.Text.StringBuilder hashBuilder = new System.Text.StringBuilder('G');
+
+        public string hashNew
+        {
+            get
+            {
+                if (!invalidateHash)
+                {
+                    if (_hash != null)
+                    {
+                        return _hash;
+                    }
+                }
+                
+                UnityEngine.Profiling.Profiler.BeginSample("CCGradient - createHash");
+                System.Text.StringBuilder hashBuilder = new System.Text.StringBuilder('G');
+                //hashBuilder.Clear();
+                //hashBuilder.Append('G');
+
+                if (colorKeys != null && colorKeys.Length > 0)
+                {
+                    for (int i = 0; i < colorKeys.Length; i++)
+                    {
+                        Color32 color = colorKeys[i].color;
+                        hashBuilder.Append('C').Append(Mathf.RoundToInt(colorKeys[i].time * 999).ToString("000")).Append(ColorUtility.ToHtmlStringRGB(color));//.Append(color.r.ToString("X2")).Append(color.g.ToString("X2")).Append(color.b.ToString("X2"));
+
+                        //hashBuilder.Append('C').AppendFormat("{0:000}", (Mathf.RoundToInt(colorKeys[i].time * 999))).AppendFormat("{0:X2}{1:X2}{2:X2}", color.r, color.g, color.b);
+                        //ColorToHex(colorKeys[i].color));
+                    }
+                }
+
+                if (alphaKeys != null && alphaKeys.Length > 0)
+                {
+                    for (int i = 0; i < alphaKeys.Length; i++)
+                    {
+                        //                    Debug.Log(alphaKeys[i]);
+                        //hash += "A" + (Mathf.RoundToInt(alphaKeys[i].time * 999)).ToString("000") + (Mathf.RoundToInt(alphaKeys[i].alpha * 999)).ToString("000");
+                        //hashBuilder.Append('A').AppendFormat("{0:000}{1:000}", Mathf.RoundToInt(alphaKeys[i].time * 999), Mathf.RoundToInt(alphaKeys[i].alpha * 999));
+                        hashBuilder.Append('A').Append(Mathf.RoundToInt(alphaKeys[i].time * 999).ToString("000")).Append(Mathf.RoundToInt(alphaKeys[i].alpha * 999).ToString("000"));
+                    }
+                }
+                
+                _hash = hashBuilder.ToString();
+                invalidateHash = false;
+                UnityEngine.Profiling.Profiler.EndSample();
+
+                return _hash;
+            }
+        }
+
+        public string hash {
     		get {
+                UnityEngine.Profiling.Profiler.BeginSample("CCGradient - hash");
                 string hash = "G";
                 
                 if (colorKeys != null && colorKeys.Length > 0) {
                     for (int i = 0; i < colorKeys.Length; i++) {
-                        hash += "C"+(Mathf.RoundToInt(colorKeys[i].time * 999)).ToString("000") + ColorToHex (colorKeys[i].color);
+                        hash += 'C'+(Mathf.RoundToInt(colorKeys[i].time * 999)).ToString("000") + ColorToHex (colorKeys[i].color);
                     }
                 }
                 
@@ -64,6 +126,8 @@ namespace SVGImporter.Rendering
                         hash += "A"+(Mathf.RoundToInt(alphaKeys [i].time * 999)).ToString("000") + (Mathf.RoundToInt(alphaKeys [i].alpha * 999)).ToString("000");
                     }
                 }
+                UnityEngine.Profiling.Profiler.EndSample();
+
                 return hash;
     		}
     	}
@@ -154,8 +218,11 @@ namespace SVGImporter.Rendering
     	{
             this.colorKeys = (CCGradientColorKey[])colorKeys.Clone();
             this.alphaKeys = (CCGradientAlphaKey[])alphaKeys.Clone();
+            //SS clone should not be needed
+            //this.colorKeys = (CCGradientColorKey[])colorKeys;
+            //this.alphaKeys = (CCGradientAlphaKey[])alphaKeys;
 
-            if(sort)
+            if (sort)
             {
                 Array.Sort<CCGradientColorKey>(this.colorKeys, (x, y) => y.time.CompareTo(x.time));
                 Array.Sort<CCGradientAlphaKey>(this.alphaKeys, (x, y) => y.time.CompareTo(x.time));
@@ -166,7 +233,9 @@ namespace SVGImporter.Rendering
                     new CCGradientAlphaKey (1f, 0f),
                     new CCGradientAlphaKey (1f, 1f)
                 };			
-    		}	    		
+    		}
+
+            invalidateHash = true;
     	}
     	
     	public Color32 Evaluate (float time)
@@ -284,8 +353,13 @@ namespace SVGImporter.Rendering
 
             CCGradient gradient = new CCGradient((CCGradientColorKey[])this.colorKeys.Clone(), 
                                                  (CCGradientAlphaKey[])this.alphaKeys.Clone(), false);
+            //SS do not Clone, should not be needed at all since CCGradientColorKey is struct.
+            //CCGradient gradient = new CCGradient((CCGradientColorKey[])this.colorKeys,
+            //                                     (CCGradientAlphaKey[])this.alphaKeys, false);
+
             gradient.index = this.index;
             gradient.atlasIndex = this.atlasIndex;
+            //gradient.SetHash(hash); //SS not needed
             return gradient;
         }
 
@@ -316,41 +390,41 @@ namespace SVGImporter.Rendering
 
         private static bool CompareRGBA(Color32 a, Color32 b)
         {
-	        return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
+            return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
         }
 
         public bool GradientEquals(CCGradient gradient)
         {
-	        if (gradient == null)
-	        {
-		        return false;
-	        }
+            if (gradient == null)
+            {
+                return false;
+            }
 
-	        if (gradient.colorKeys == null || gradient.colorKeys.Length != colorKeys.Length ||
-	            gradient.alphaKeys == null || gradient.alphaKeys.Length != alphaKeys.Length)
-	        {
-		        return false;
-	        }
+            if (gradient.colorKeys == null || gradient.colorKeys.Length != colorKeys.Length ||
+                gradient.alphaKeys == null || gradient.alphaKeys.Length != alphaKeys.Length)
+            {
+                return false;
+            }
 
-	        for (int i = 0; i < gradient.colorKeys.Length; i++)
-	        {
-		        if (!CompareRGBA(gradient.colorKeys[i].color, colorKeys[i].color) ||
-		            gradient.colorKeys[i].time != this.colorKeys[i].time)
-		        {
-			        return false;
-		        }
-	        }
+            for (int i = 0; i < gradient.colorKeys.Length; i++)
+            {
+                if (!CompareRGBA(gradient.colorKeys[i].color, colorKeys[i].color) ||
+                    gradient.colorKeys[i].time != this.colorKeys[i].time)
+                {
+                    return false;
+                }
+            }
 
-	        for (int i = 0; i < gradient.alphaKeys.Length; i++)
-	        {
-		        if (gradient.alphaKeys[i].alpha != alphaKeys[i].alpha ||
-		            gradient.alphaKeys[i].time != alphaKeys[i].time)
-		        {
-			        return false;
-		        }
-	        }
+            for (int i = 0; i < gradient.alphaKeys.Length; i++)
+            {
+                if (gradient.alphaKeys[i].alpha != alphaKeys[i].alpha ||
+                    gradient.alphaKeys[i].time != alphaKeys[i].time)
+                {
+                    return false;
+                }
+            }
 
-	        return true;
+            return true;
         }
 
         // Note that Color32 and Color implictly convert to each other. You may pass a Color object to this method without first casting it.

@@ -1,4 +1,4 @@
-
+#define SS_SVG_LESS_MEM
 
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +6,7 @@ using UnityEngine.Serialization;
 
 using System.Collections;
 using System.Collections.Generic;
+
 
 namespace SVGImporter 
 {
@@ -509,7 +510,13 @@ namespace SVGImporter
                 {
                     if(_runtimeMesh != null)
                     {
-                        _runtimeMesh.Clear();
+#if !SS_SVG_LESS_MEM
+                        _runtimeMesh.Clear(false);
+#else
+                        //SS added full Clear and Destroy
+                        _runtimeMesh.Clear(false);
+                        DestroyMesh(_runtimeMesh);
+#endif
                         _runtimeMesh = null;
                     }
 
@@ -518,6 +525,22 @@ namespace SVGImporter
                         _runtimeMaterials = null;
                     }
                 }
+            }
+        }
+
+        public static void DestroyMesh(Mesh mesh)
+        {
+            if (mesh == null)
+            {
+                return;
+            }
+
+            if (Application.isPlaying)
+            {
+                Destroy(mesh);
+            } else
+            {
+                DestroyImmediate(mesh);
             }
         }
 
@@ -552,7 +575,39 @@ namespace SVGImporter
 
                         _runtimeMesh = SVGMeshUtils.Clone(_sharedMesh);
                         _runtimeMesh.hideFlags = HideFlags.DontSave;
-                        if(_runtimeMesh.uv2 != null && _runtimeMesh.uv2.Length > 0)
+#if SS_SVG_LESS_MEM
+                        List<Vector2> uv2 = Mussila.SharedUtil.ListPool<Vector2>.Get();
+                        _runtimeMesh.GetUVs(1, uv2);
+
+                        //SSNAT use NativeArray in 2019.3
+                        if (uv2 != null && uv2.Count > 0)
+                        {
+                            int key;
+                            Vector2 uv2tmp;
+                            for (int i = 0; i < uv2.Count; i++)
+                            {
+                                uv2tmp = uv2[i];
+                                key = Mathf.FloorToInt(Mathf.Abs(uv2tmp.x));
+                                try
+                                {
+                                    uv2tmp = uv2[i];
+                                    uv2tmp.x = gradientCache[key];
+                                    uv2[i] = uv2tmp;
+                                }
+                                catch { }
+                                /*
+                                catch ( System.Exception exception)
+                                {
+                                    Debug.Log("i: "+i+", "+exception.Message+"\nKey: "+key);
+                                }
+                                */
+                            }
+                            _runtimeMesh.SetUVs(1,uv2);
+                        }
+#else
+                        //SS if we hate memory we can use this
+                        
+                        if (_runtimeMesh.uv2 != null && _runtimeMesh.uv2.Length > 0)
                         {
                             Vector2[] uv2 = _runtimeMesh.uv2;
                             int key;
@@ -562,15 +617,16 @@ namespace SVGImporter
                                 try {
                                     uv2[i].x = gradientCache[key];
                                 } catch {}
-                                /*
-                                catch ( System.Exception exception)
-                                {
-                                    Debug.Log("i: "+i+", "+exception.Message+"\nKey: "+key);
-                                }
-                                */
+                                // / *
+                                //catch ( System.Exception exception)
+                                //{
+                                //    Debug.Log("i: "+i+", "+exception.Message+"\nKey: "+key);
+                                //}
+                                // * /
                             }
                             _runtimeMesh.uv2 = uv2;
                         }
+#endif
                     }    
                 }
                 return _runtimeMesh;
@@ -1080,7 +1136,8 @@ namespace SVGImporter
                 if(_sharedGradients == null || _sharedGradients.Length == 0) return false;
                 if(_sharedGradients.Length == 1)
                 {
-                    if(SVGAtlasData.IsDefaultGradient(_sharedGradients[0])) return false;
+                    //if(_sharedGradients[0].hash == CCGradient.DEFAULT_GRADIENT_HASH) return false;
+                    if (SVGAtlasData.IsDefaultGradient(_sharedGradients[0])) return false;
                 }
                 return true;
             }
@@ -1599,7 +1656,10 @@ namespace SVGImporter
 
                 int vertexCount = _sharedMesh.vertexCount;
                 UnityEditor.MeshUtility.SetMeshCompression(_sharedMesh, GetModelImporterMeshCompression(_meshCompression));
-                if(_optimizeMesh) ;
+                if(_optimizeMesh)
+                {
+                    
+                }
                 if(_generateNormals)
                 {
                     if(!_antialiasing)

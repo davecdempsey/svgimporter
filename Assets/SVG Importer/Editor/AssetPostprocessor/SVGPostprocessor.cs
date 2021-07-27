@@ -287,7 +287,14 @@ namespace SVGImporter
             textureImporter.isReadable = true;
             textureImporter.mipmapEnabled = false;
             textureImporter.spriteImportMode = SpriteImportMode.None;
+
+#pragma warning disable CS0618 // Type or member is obsolete
             textureImporter.textureFormat = TextureImporterFormat.ARGB32;
+#pragma warning restore CS0618 // Type or member is obsolete
+            //SS_ Should consider using the commented out code instead
+            //TextureImporterPlatformSettings platformSettings = textureImporter.GetDefaultPlatformTextureSettings();
+            //platformSettings.format = TextureImporterFormat.ARGB32;
+            //textureImporter.SetPlatformTextureSettings(platformSettings);
             textureImporter.wrapMode = TextureWrapMode.Clamp;
         }
 

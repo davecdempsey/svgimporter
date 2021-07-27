@@ -368,6 +368,7 @@ namespace SVGImporter.Document
                 case SVGNodeName.PolyLine:
                 case SVGNodeName.Rect:
                 case SVGNodeName.Stop:
+                case SVGNodeName.Use: // SS
                     return true;
             }
             
@@ -543,6 +544,11 @@ namespace SVGImporter.Document
                                         elementList.Add(new SVGElement(this,
                                                                     summaryTransformList,
                                                                     paintable));
+
+                                            // SS SVGRectElement instead of SVGElement .. this to nodes [idx]
+                                        //elementList.Add(new SVGUseElement(this,
+                                        //                            summaryTransformList,
+                                        //                            paintable, false, definitionNode));
                                     }
                                 }
                             }
