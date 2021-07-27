@@ -2,12 +2,29 @@
 
 #include "SVGImporterCG.cginc"
 
+#ifndef UNITY_UI_INCLUDED
+#define UNITY_UI_INCLUDED
+
+inline float UnityGet2DClipping (in float2 position, in float4 clipRect)
+{
+    float2 inside = step(clipRect.xy, position.xy) * step(position.xy, clipRect.zw);
+    return inside.x * inside.y;
+}
+
+inline half4 UnityGetUIDiffuseColor(in float2 position, in sampler2D mainTexture, in sampler2D alphaTexture, half4 textureSampleAdd)
+{
+    return half4(tex2D(mainTexture, position).rgb + textureSampleAdd.rgb, tex2D(alphaTexture, position).r + textureSampleAdd.a);
+}
+#endif
+
 sampler2D _GradientColor;
 sampler2D _GradientShape;
+CBUFFER_START(UnityPerMaterial)
 float4 _Params;
+CBUFFER_END
 
 float4 _ClipRect;
-fixed4 _TextureSampleAdd;
+half4 _TextureSampleAdd;
 			
 struct vertex_input
 {
@@ -21,7 +38,7 @@ struct vertex_input
 
 struct vertex_output
 {
-    float4 vertex : SV_POSITION;			    
+    float4 vertex : POSITION;			    
     float4 uv0 : TEXCOORD0;
     float4 uv1 : TEXCOORD1;
     float4 worldPosition : TEXCOORD2;
@@ -78,14 +95,14 @@ vertex_output vertexGradientsAntialiased(vertex_input v)
     return o;
 }
 
-half4 fragmentGradientsOpaque(vertex_output i) : SV_Target
+half4 fragmentGradientsOpaque(vertex_output i) : COLOR
 {
 	float gradient = dot(tex2D(_GradientShape, i.uv0), i.uv1) ;
 	float2 gradientColorUV = float2(i.uv0.z + gradient, i.uv0.w);
 	return float4((tex2D(_GradientColor, gradientColorUV).rgb + _TextureSampleAdd) * i.color.rgb, 1.0);
 }
 
-half4 fragmentGradientsAlphaBlended(vertex_output i) : SV_Target
+half4 fragmentGradientsAlphaBlended(vertex_output i) : COLOR
 {
 	float gradient = dot(tex2D(_GradientShape, i.uv0), i.uv1) ;
 	float2 gradientColorUV = float2(i.uv0.z + gradient, i.uv0.w);

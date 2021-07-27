@@ -17,10 +17,67 @@ Shader "SVG Importer/UI/UIAntialiased" {
  		
  		_ColorMask ("Color Mask", Float) = 15
 	}
+
+	SubShader
+	{
+		Tags {
+			"RenderType" = "Transparent"
+			"Queue" = "Transparent"
+			"IgnoreProjector" = "True"
+			"RenderPipeline" = "UniversalPipeline"
+		}
+
+		LOD 200
+		Lighting Off
+		ZTest[unity_GUIZTestMode]
+		ZWrite Off
+		Cull Off
+
+		Stencil {
+			Ref[_Stencil]
+			ReadMask[_StencilReadMask]
+			WriteMask[_StencilWriteMask]
+			Comp[_StencilComp]
+			Pass[_StencilOp]
+		}
+
+		Blend SrcAlpha OneMinusSrcAlpha
+		ColorMask[_ColorMask]
+		Fog { Mode Off }
+
+		Pass
+		{
+			//Tags{"LightMode" = "UniversalForward"}
+			//CGPROGRAM
+			HLSLPROGRAM
+			// Required to compile gles 2.0 with standard SRP library
+			// All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+			#pragma prefer_hlslcc gles
+			#pragma exclude_renderers d3d11_9x
+			#pragma target 2.0
+
+			#pragma vertex vertexGradientsAntialiased
+			#pragma fragment fragmentGradientsAlphaBlended
+			#pragma fragmentoption ARB_precision_hint_fastest
+			#pragma glsl_no_auto_normalization 
+			//#include "UnityCG.cginc"
+			#include "../../SVGImporterUnityCG.cginc"
+			//#include "UnityUI.cginc"
+			#include "../../SVGImporterUICG.cginc"			
+			ENDHLSL
+			//ENDCG
+		}
+	}
 	
 	SubShader
 	{
-		Tags {"RenderType"="Transparent" "Queue"="Transparent" "IgnoreProjector" = "True"}
+		Tags {
+			"RenderType" = "Transparent"
+			"Queue" = "Transparent"
+			"IgnoreProjector" = "True"
+			"RenderPipeline" = ""	
+		}
+
 		LOD 200
 		Lighting Off
 		ZTest [unity_GUIZTestMode]
