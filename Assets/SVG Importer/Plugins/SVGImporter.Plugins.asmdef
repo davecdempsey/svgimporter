@@ -1,0 +1,15 @@
+{
+    "name": "SVGImporter.Plugins",
+    "references": [
+        "GUID:11e972131707f421d94380f681371d22"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

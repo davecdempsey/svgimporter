@@ -1,0 +1,15 @@
+{
+    "name": "SVGImporter",
+    "references": [
+        "GUID:449eca889b8f146e38d9a9119156c9ad"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
