@@ -576,7 +576,7 @@ namespace SVGImporter
                         _runtimeMesh = SVGMeshUtils.Clone(_sharedMesh);
                         _runtimeMesh.hideFlags = HideFlags.DontSave;
 #if SS_SVG_LESS_MEM
-                        List<Vector2> uv2 = Mussila.SharedUtil.ListPool<Vector2>.Get();
+                        List<Vector2> uv2 = SVGImporter.Utils.ListPool<Vector2>.Get();
                         _runtimeMesh.GetUVs(1, uv2);
 
                         //SSNAT use NativeArray in 2019.3
